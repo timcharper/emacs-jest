@@ -3,7 +3,7 @@
 ;; URL:  https://github.com/emiller88/emacs-jest/
 ;; Version: 0.1.0
 ;; Keywords: jest, javascript, testing
-;; Package-Requires: ((emacs "24.4") (dash "2.18.0") (magit-popup "2.12.0") (projectile "0.14.0") (s "1.12.0") (js2-mode "20180301") (cl-lib "0.6.1"))
+;; Package-Requires: ((emacs "24.4") (dash "2.18.0") (magit-popup "2.12.0")  (s "1.12.0") (js2-mode "20180301") (cl-lib "0.6.1"))
 
 ;; This file is part of GNU Emacs.
 
@@ -44,7 +44,6 @@
 
 (require 'dash)
 (require 'magit-popup)
-(require 'projectile)
 (require 's)
 (require 'jest-traversal)
 
@@ -447,7 +446,7 @@ If FILE is not found in DIRECTORY, the parent of DIRECTORY will be searched."
 (defun jest--project-root ()
   "Find the project root directory."
   (interactive)
-  (file-name-directory (jest--find-package-json buffer-file-name)))
+  (project-root (project-current)))
 
 (defun jest--relative-file-name (file)
   "Make FILE relative to the project root."
@@ -458,14 +457,20 @@ If FILE is not found in DIRECTORY, the parent of DIRECTORY will be searched."
 
 (defun jest--test-file-p (file)
   "Tell whether FILE is a test file."
-  (projectile-test-file-p file))
+  (if (fboundp 'projectile-test-file-p)
+      (projectile-test-file-p file)
+    (message "TODO")
+    nil))
 
 (defun jest--find-test-file (file)
   "Find a test file associated to FILE, if any."
-  (let ((test-file (projectile-find-matching-test file)))
-    (unless test-file
-      (user-error "No test file found"))
-    test-file))
+  (if (fboundp 'projectile-find-matching-test)
+      (let ((test-file (projectile-find-matching-test file)))
+        (unless test-file
+          (user-error "No test file found"))
+        test-file)
+    (message "TODO")
+    nil))
 
 (defun jest--sensible-test-file (file)
   "Return a sensible test file name for FILE."
@@ -487,7 +492,8 @@ If FILE is not found in DIRECTORY, the parent of DIRECTORY will be searched."
     ;; check all project buffers
     (-when-let*
         ((buffers
-          (projectile-buffers-with-file (projectile-project-buffers)))
+          (seq-filter (lambda (buffer) (buffer-file-name buffer))
+                      (project-buffers (project-current))))
          (modified-buffers
           (-filter 'buffer-modified-p buffers))
          (confirmed
@@ -569,7 +575,6 @@ This goes from pointer position upwards."
   :keymap (let ((jest-minor-mode-keymap (make-sparse-keymap)))
             (define-key jest-minor-mode-keymap [remap compile] jest-compile-command)
             (define-key jest-minor-mode-keymap [remap recompile] jest-repeat-compile-command)
-            (define-key jest-minor-mode-keymap [remap projectile-test-project] jest-compile-command)
             (define-key jest-minor-mode-keymap (kbd "C-c ;") 'jest-file-dwim)
             jest-minor-mode-keymap))
 
