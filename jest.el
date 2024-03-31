@@ -283,7 +283,7 @@ With a prefix ARG, allow editing."
 (cl-defun jest--run (&key args file testname edit)
   "Run jest for the given arguments."
   (let ((popup-arguments args)
-	command)
+	      command)
     (setq args (jest--transform-arguments args))
     (when (and file (file-name-absolute-p file))
       (setq file (jest--relative-file-name file)))
@@ -293,12 +293,12 @@ With a prefix ARG, allow editing."
     (when testname
       (setq args (-snoc args "--testNamePattern" (jest--shell-quote testname))))
 
-      (setq args (cons jest-executable args) command (s-join " " args))
+    (setq args (cons jest-executable args) command (s-join " " args))
 
-      (jest--run-command
-       :command command
-       :popup-arguments popup-arguments
-       :edit edit)))
+    (jest--run-command
+     :command command
+     :popup-arguments popup-arguments
+     :edit edit)))
 
 (cl-defun jest--run-command (&key command popup-arguments edit)
   "Run a jest command line."
@@ -419,8 +419,8 @@ Example: ‘MyABCThingy.__repr__’ becomes ‘test_my_abc_thingy_repr’."
 (defun jest--read-package-json (file)
   "File to read package json for a project"
   (json-parse-string (with-temp-buffer
-    (insert-file-contents (jest--find-package-json file))
-    (buffer-string))))
+                       (insert-file-contents (jest--find-package-json file))
+                       (buffer-string))))
 
 (defun jest--file-search-upward (directory file)
   "Search DIRECTORY for FILE and return its full path if found, or NIL if not.
@@ -428,13 +428,13 @@ Example: ‘MyABCThingy.__repr__’ becomes ‘test_my_abc_thingy_repr’."
 If FILE is not found in DIRECTORY, the parent of DIRECTORY will be searched."
   (let ((parent-dir (file-truename (concat (file-name-directory directory) "../")))
         (current-path (if (not (string= (substring directory (- (length directory) 1)) "/"))
-                         (concat directory "/" file)
-                         (concat directory file))))
+                          (concat directory "/" file)
+                        (concat directory file))))
     (if (file-exists-p current-path)
         current-path
-        (when (and (not (string= (file-truename directory) parent-dir))
-                   (< (length parent-dir) (length (file-truename directory))))
-          (jest--file-search-upward parent-dir file)))))
+      (when (and (not (string= (file-truename directory) parent-dir))
+                 (< (length parent-dir) (length (file-truename directory))))
+        (jest--file-search-upward parent-dir file)))))
 
 (defun jest--find-package-json (file)
   "Find the package.json associated with a given file"
@@ -545,7 +545,7 @@ This goes from pointer position upwards."
 
 (defun jest-clear-buffer-after-test-end (inserted-string)
   (let
-  ((test-end-regex  ".*?Test Suites:.+\nTests:  .+\nSnapshots: .+\nTime:  .+\nRan all test suites.+\n.*?"))  
+      ((test-end-regex  ".*?Test Suites:.+\nTests:  .+\nSnapshots: .+\nTime:  .+\nRan all test suites.+\n.*?"))
     (when (and (s-contains? "*jest*"
                             (buffer-name))
                (s-matches? test-end-regex (buffer-string)))
