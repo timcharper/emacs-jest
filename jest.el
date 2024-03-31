@@ -501,22 +501,16 @@ If FILE is not found in DIRECTORY, the parent of DIRECTORY will be searched."
    (t nil)))
 
 
-;; functions to inspect/navigate the javascript source code
-(defun jest--current-testname ()
-  "Return the testname where pointer is located.
+(defun jest--current-test-name ()
+  "Return the testname where pointer is located."
 
-Testname is defined by enclosing ~describe~ calls and ~it~/~test~ calls."
-  (let* ((calls (jest--list-named-calls-upwards))
-         (testname ""))
-    (dolist (call calls)
-      ;; call is the node for the function, function name must be extracted
-      ;; from its target node
-      (let ((funcname (js2-name-node-name (js2-call-node-target call))))
-        (when (member funcname '("it" "test" "describe"))
-          (let ((funcparam (jest--function-first-param-string call)))
-            (setq testname (format "%s %s" funcparam testname))))))
-    (unless (string= testname "") (string-trim testname))))
+  (save-excursion
+    (typescript--re-search-backward "^ *\\(test\\|it\\|describe\\)\\b.*")
 
+    (let* ((start (re-search-forward "[\"']" (line-end-position) t))
+           (c (char-before (point)))
+           (end (search-forward (char-to-string c) (line-end-position) t)))
+      (buffer-substring-no-properties start (- end 1)))))
 
 
 (defun jest--list-named-calls-upwards ()
